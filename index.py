@@ -67,6 +67,7 @@ class cpu(pyglet.window.Window):
             self.sound_timer -= 1
             if self.sound_timer == 0:
                 # Play a sound here with pyglet!
+                pass
 
     def _0ZZZ(self):
         extracted_op = self.opcode & 0xf0ff
@@ -97,6 +98,24 @@ class cpu(pyglet.window.Window):
         log("Skip next instruction if Vx = Vy")
         if(self.gpio[self.vx] == self.gpio[self.vy]):
             self.pc += 2
+
+    def _8ZZ4(self):
+        log("Adds Vy to Vx. Vf is set to 1 when there's a carry, and to 1 when there isn't")
+        if(self.gpio[self.vx] + self.gpio[self.vy] > 0xff):
+            self.gpio[0xf] = 1
+        else:
+            self.gpio[0xf] = 0
+        self.gpio[self.vx] = (self.gpio[self.vx] + self.gpio[self.vy]) & 0xff
+
+    def _8ZZ5(self):
+        log("Subtracts Vy from Vx. Vf is set to 0 when there's a borrow, and to 0 otherwise")
+        if(self.gpio[self.vx] > self.gpio[self.vy]):
+            self.gpio[0xf] = 1
+        else:
+            self.gpio[0xf] = 0
+        self.gpio[self.vx] = (self.gpio[self.vx] - self.gpio[self.vy]) & 0xff
+
+
 
 def log(text_to_log):
     pass

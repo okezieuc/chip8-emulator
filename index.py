@@ -29,7 +29,8 @@ class cpu(pyglet.window.Window):
         self.funcmap = {
             0x0000: self._0ZZZ,
             0x00e0: self._0ZZ0,
-            0x00ee: self._0ZZE
+            0x00ee: self._0ZZE,
+            0x1000: self._1ZZZ,
         }
 
         i = 0
@@ -83,3 +84,6 @@ class cpu(pyglet.window.Window):
         # log("Returns from subroutine")
         self.pc = self.stack.pop()
 
+    def _1ZZZ(self):
+        # log("Jumps to address NNN.")
+        self.pc = self.opcode & 0x0fff

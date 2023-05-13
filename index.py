@@ -40,7 +40,7 @@ class cpu(pyglet.window.Window):
             i += 1
     
     def load_rom(self, rom_path):
-        # log("Loading %s..." % rom_path)
+        log("Loading %s..." % rom_path)
         binary = open(rom_path, "rb").read()
         i = 0
         while i < len(binary):
@@ -76,14 +76,17 @@ class cpu(pyglet.window.Window):
             print("Unknown instruction: %X" % self.opcode)
 
     def _0ZZ0(self):
-        # log("Clears the screen")
+        log("Clears the screen")
         self.display_buffer = [0]*64*32
         self.should_draw = True
 
     def _0ZZE(self):
-        # log("Returns from subroutine")
+        log("Returns from subroutine")
         self.pc = self.stack.pop()
 
     def _1ZZZ(self):
-        # log("Jumps to address NNN.")
+        log("Jumps to address NNN.")
         self.pc = self.opcode & 0x0fff
+
+def log(text_to_log):
+    pass

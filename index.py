@@ -26,6 +26,12 @@ class cpu(pyglet.window.Window):
 
         self.pc = 0x200
 
+        self.funcmap = {
+            0x0000: self._0ZZZ,
+            0x00e0: self._0ZZ0,
+            0x00ee: self._0ZZE
+        }
+
         i = 0
         while i < 80:
             # load 80-char font set
@@ -61,4 +67,19 @@ class cpu(pyglet.window.Window):
             if self.sound_timer == 0:
                 # Play a sound here with pyglet!
 
+    def _0ZZZ(self):
+        extracted_op = self.opcode & 0xf0ff
+        try:
+            self.funcmap[extracted_op]()
+        except:
+            print("Unknown instruction: %X" % self.opcode)
+
+    def _0ZZ0(self):
+        # log("Clears the screen")
+        self.display_buffer = [0]*64*32
+        self.should_draw = True
+
+    def _0ZZE(self):
+        # log("Returns from subroutine")
+        self.pc = self.stack.pop()
 

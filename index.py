@@ -115,7 +115,35 @@ class cpu(pyglet.window.Window):
             self.gpio[0xf] = 0
         self.gpio[self.vx] = (self.gpio[self.vx] - self.gpio[self.vy]) & 0xff
 
+    def _FZ29(self):
+        log("Set index to point to a character")
+        self.index = (5*(self.gpio[self.vx])) & 0xfff
 
+    def _DZZZ(self):
+        log("Draw a sprite")
+        self.gpio[0xf] = 0
+        x = self.gpio[self.vx] & 0xff
+        y = self.gpio[self.vy] & 0xff
+        height = self.opcode & 0x000f
+        row = 0
+        while row < height:
+            curr_row = self.memory[row + self.index]
+            pixel_offset = 0
+            while pixel_offset < 8:
+                loc = x + pixel_offset + ((y + row)*64)
+                pixel_offset += 1
+                if (y + row) >= 32 or (x + pixel_offset - 1) >= 64:
+                    #ignore pixels outside the screen
+                    continue
+                mask = 1 << 8 - pixel_offset
+                curr_pixel = (curr_row & mask) >> (8-pixel_offset)
+                self.display_buffer[loc] ^= curr_pixel
+                if self.display_buffer[loc] == 0:
+                    self.gpio[0xf] = 1
+                else:
+                    self.gpio[0xf] = 0
+            row += 1
+        self.should_draw = True
 
 def log(text_to_log):
     pass

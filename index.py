@@ -88,5 +88,15 @@ class cpu(pyglet.window.Window):
         log("Jumps to address NNN.")
         self.pc = self.opcode & 0x0fff
 
+    def _4ZZZ(self):
+        log("Skip next instruction if Vx doesn't equal NN")
+        if(self.gpio[self.vx] != (self.opcode & 0x00ff)):
+            self.pc += 2
+    
+    def _5ZZZ(self):
+        log("Skip next instruction if Vx = Vy")
+        if(self.gpio[self.vx] == self.gpio[self.vy]):
+            self.pc += 2
+
 def log(text_to_log):
     pass

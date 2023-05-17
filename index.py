@@ -157,6 +157,22 @@ class cpu(pyglet.window.Window):
                 i += 1
             self.flip()
             self.should_draw = False
+    
+    def on_key_press(self, symbol, modifiers):
+        log("Key pressed: %r" % symbol)
+        if symbol in KEY_MAP.keys():
+            self.key_inputs[KEY_MAP[symbol]] = 1
+            if self.key_wait:
+                self.key_wait = False
+        else:
+            super(cpu, self).on_key_press(symbol, modifiers)
+
+    def on_key_release(self, symbol, modifiers):
+        log("Key released: %r " % symbol)
+        if symbol in KEY_MAP.keys():
+            self.key_inputs[KEY_MAP[symbol]] = 0
+
+    
 
 def log(text_to_log):
     pass

@@ -31,6 +31,18 @@ class cpu(pyglet.window.Window):
             0x00e0: self._0ZZ0,
             0x00ee: self._0ZZE,
             0x1000: self._1ZZZ,
+            0x4000: self._4ZZZ,
+            0x5000: self._5ZZZ,
+            0x8000: self._8ZZZ,
+            0x8004: self._8ZZ4,
+            0x8005: self._8ZZ5,
+            0xd000: self._DZZZ,
+            0xe000: self._EZZZ,
+            0xe09e: self._EZZE,
+            0xe0a1: self._EZZ1,
+            0xf000: self._FZZZ,
+            0xf029: self._FZ29,
+            0xf033: self._FZ33,
         }
 
         i = 0
@@ -98,6 +110,17 @@ class cpu(pyglet.window.Window):
         log("Skip next instruction if Vx = Vy")
         if(self.gpio[self.vx] == self.gpio[self.vy]):
             self.pc += 2
+    
+    def _8ZZZ(self):
+        extracted_op = self.opcode & 0xf00f
+        if extracted_op == 0x8000:
+            # run 8xy0 instruction
+            pass
+        else:
+            try:
+                self.funcmap[extracted_op]()
+            except:
+                print("Unknown instruction: %X" % self.opcode)
 
     def _8ZZ4(self):
         log("Adds Vy to Vx. Vf is set to 1 when there's a carry, and to 1 when there isn't")
@@ -114,10 +137,6 @@ class cpu(pyglet.window.Window):
         else:
             self.gpio[0xf] = 0
         self.gpio[self.vx] = (self.gpio[self.vx] - self.gpio[self.vy]) & 0xff
-
-    def _FZ29(self):
-        log("Set index to point to a character")
-        self.index = (5*(self.gpio[self.vx])) & 0xfff
 
     def _DZZZ(self):
         log("Draw a sprite")
@@ -145,6 +164,13 @@ class cpu(pyglet.window.Window):
             row += 1
         self.should_draw = True
 
+    def _EZZZ(self):
+        extracted_op = self.opcode & 0xf0ff
+        try:
+            self.funcmap[extracted_op]()
+        except:
+            print("Unknown instruction: %X" % self.opcode)
+
     def _EZZE(self):
         log("Skips the next instruction if the key stores in Vx is pressed.")
         if self.key_inputs[self.gpio[self.vx] & 0xf ] == 1:
@@ -155,7 +181,18 @@ class cpu(pyglet.window.Window):
         key = self.gpio[self.vx] & 0xf
         if self.key_inputs[key] == 0:
             self.pc += 2
+
+    def _FZZZ(self):
+        extracted_op = self.opcode & 0xf0ff
+        try:
+            self.funcmap[extracted_op]()
+        except:
+            print("Unknown instruction: %X" % self.opcode)
     
+    def _FZ29(self):
+        log("Set index to point to a character")
+        self.index = (5*(self.gpio[self.vx])) & 0xfff
+
     def _FZ33(self):
         log("Store the BCD representation of Vx in memory locations I, I+1, and I+2")
         bcd = self.gpio[self.vx]

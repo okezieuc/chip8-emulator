@@ -144,6 +144,19 @@ class cpu(pyglet.window.Window):
                     self.gpio[0xf] = 0
             row += 1
         self.should_draw = True
+    
+    def draw(self):
+        if self.should_draw:
+            self.clear()
+            line_counter = 0
+            i = 0
+            while i < 2048:
+                if self.display_buffer[i] == 1:
+                    # draw a square pixel
+                    self.pixel.blit((i%64)*10, 310 - ((i/64)*10))
+                i += 1
+            self.flip()
+            self.should_draw = False
 
 def log(text_to_log):
     pass

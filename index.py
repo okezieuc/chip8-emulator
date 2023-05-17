@@ -156,6 +156,15 @@ class cpu(pyglet.window.Window):
         if self.key_inputs[key] == 0:
             self.pc += 2
     
+    def _FZ33(self):
+        log("Store the BCD representation of Vx in memory locations I, I+1, and I+2")
+        bcd = self.gpio[self.vx]
+
+        self.memory[self.index] = bcd // 100
+        self.memory[self.index + 1] = (bcd // 10) % 10
+        self.memory[self.index + 2] = bcd % 10
+
+
     def draw(self):
         if self.should_draw:
             self.clear()

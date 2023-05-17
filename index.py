@@ -144,6 +144,17 @@ class cpu(pyglet.window.Window):
                     self.gpio[0xf] = 0
             row += 1
         self.should_draw = True
+
+    def _EZZE(self):
+        log("Skips the next instruction if the key stores in Vx is pressed.")
+        if self.key_inputs[self.gpio[self.vx] & 0xf ] == 1:
+            self.pc += 2
+
+    def _EZZ1(self):
+        log("Skips the next instruction if the key with the value of Vx is not pressed")
+        key = self.gpio[self.vx] & 0xf
+        if self.key_inputs[key] == 0:
+            self.pc += 2
     
     def draw(self):
         if self.should_draw:

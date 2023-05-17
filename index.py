@@ -1,5 +1,5 @@
 import pyglet
-
+import sys
 
 class cpu(pyglet.window.Window):
     def main(self):
@@ -233,3 +233,12 @@ class cpu(pyglet.window.Window):
 
 def log(text_to_log):
     pass
+
+# begin emulating!
+if len(sys.argv) == 3:
+  if sys.argv[2] == "log":
+    LOGGING = True
+      
+chip8emu = cpu(640, 320)
+chip8emu.main()
+log("... done.")

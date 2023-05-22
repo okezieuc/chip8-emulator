@@ -27,6 +27,7 @@ class cpu(pyglet.window.Window):
         self.delay_timer = 0
         self.sound_timer = 0
         self.should_draw = False
+        self.key_wait = False
 
         self.pc = 0x200
 
@@ -263,11 +264,28 @@ class cpu(pyglet.window.Window):
         log("Key released: %r " % symbol)
         if symbol in KEY_MAP.keys():
             self.key_inputs[KEY_MAP[symbol]] = 0
-
     
-
 def log(text_to_log):
     pass
+
+KEY_MAP = {
+    pyglet.window.key._1: 0x1,
+    pyglet.window.key._2: 0x2,
+    pyglet.window.key._3: 0x3,
+    pyglet.window.key._4: 0xC,
+    pyglet.window.key.Q: 0x4,
+    pyglet.window.key.W: 0x5,
+    pyglet.window.key.E: 0x6,
+    pyglet.window.key.R: 0xD,
+    pyglet.window.key.A: 0x7,
+    pyglet.window.key.S: 0x8,
+    pyglet.window.key.D: 0x9,
+    pyglet.window.key.F: 0xE,
+    pyglet.window.key.Z: 0xA,
+    pyglet.window.key.X: 0x0,
+    pyglet.window.key.C: 0xB,
+    pyglet.window.key.V: 0xF
+}
 
 # begin emulating!
 if len(sys.argv) == 3:

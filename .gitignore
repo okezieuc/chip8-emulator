@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# CHIP-8 APPS
+apps/
+
 # C extensions
 *.so
 

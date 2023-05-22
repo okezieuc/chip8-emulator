@@ -1,5 +1,6 @@
 import pyglet
 import sys
+import random
 
 class cpu(pyglet.window.Window):
     def __init__(self, *args, **kwargs):
@@ -65,12 +66,15 @@ class cpu(pyglet.window.Window):
             0x8004: self._8ZZ4,
             0x8005: self._8ZZ5,
             0xa000: self._AZZZ,
+            0xc000: self._CZZZ,
             0xd000: self._DZZZ,
             0xe000: self._EZZZ,
             0xe09e: self._EZZE,
             0xe0a1: self._EZZ1,
             0xf000: self._FZZZ,
             0xf007: self._FZ07,
+            0xf015: self._FZ15,
+            0xf018: self._FZ18,
             0xf029: self._FZ29,
             0xf033: self._FZ33,
             0xf065: self._FZ65,
@@ -91,27 +95,28 @@ class cpu(pyglet.window.Window):
             i+=1
 
     def cycle(self):
-        self.opcode = (self.memory[self.pc] << 8) | self.memory[self.pc + 1]  # Combine two bytes into a 16-bit opcode
+        if not self.key_wait:
+            self.opcode = (self.memory[self.pc] << 8) | self.memory[self.pc + 1]  # Combine two bytes into a 16-bit opcode
 
-        self.vx = (self.opcode & 0x0f00) >> 8
-        self.vy = (self.opcode & 0x00f0) >> 4
-        
-        self.pc += 2
+            self.vx = (self.opcode & 0x0f00) >> 8
+            self.vy = (self.opcode & 0x00f0) >> 4
+            
+            self.pc += 2
 
-        extracted_op = self.opcode & 0xf000
-        try:
-            self.funcmap[extracted_op]()
-        except:
-            print("Unknown instruction: %X" % self.opcode)
+            extracted_op = self.opcode & 0xf000
+            try:
+                self.funcmap[extracted_op]()
+            except:
+                print("Unknown instruction: %X" % self.opcode)
 
-        # decrement timers
-        if self.delay_timer > 0:
-            self.delay_timer -= 1
-        if self.sound_timer > 0:
-            self.sound_timer -= 1
-            if self.sound_timer == 0:
-                # Play a sound here with pyglet!
-                pass
+            # decrement timers
+            if self.delay_timer > 0:
+                self.delay_timer -= 1
+            if self.sound_timer > 0:
+                self.sound_timer -= 1
+                if self.sound_timer == 0:
+                    # Play a sound here with pyglet!
+                    pass
 
     def _0ZZZ(self):
         extracted_op = self.opcode & 0xf0ff
@@ -197,6 +202,12 @@ class cpu(pyglet.window.Window):
         log("Set I = nnn")
         self.index = self.opcode & 0x0fff
 
+    def _CZZZ(self):
+        log("Set Vx = random byte AND kk")
+        random_byte = random.randint(0, 0xff)
+        self.gpio[self.vx] = random_byte & (self.opcode & 0x00ff)
+
+
     def _DZZZ(self):
         log("Draw a sprite")
         self.gpio[0xf] = 0
@@ -251,6 +262,14 @@ class cpu(pyglet.window.Window):
     def _FZ07(self):
         log("Set Vx = delay timer value")
         self.gpio[self.vx] = self.delay_timer
+
+    def _FZ15(self):
+        log("Set delay timer = Vx")
+        self.delay_timer = self.vx
+
+    def _FZ18(self):
+        log("Set sound timer = Vx")
+        self.sound_timer = self.vx
     
     def _FZ29(self):
         log("Set index to point to a character")

@@ -53,6 +53,7 @@ class cpu(pyglet.window.Window):
             0x00e0: self._0ZZ0,
             0x00ee: self._0ZZE,
             0x1000: self._1ZZZ,
+            0x3000: self._3ZZZ,
             0x4000: self._4ZZZ,
             0x5000: self._5ZZZ,
             0x8000: self._8ZZZ,
@@ -63,6 +64,7 @@ class cpu(pyglet.window.Window):
             0xe09e: self._EZZE,
             0xe0a1: self._EZZ1,
             0xf000: self._FZZZ,
+            0xf007: self._FZ07,
             0xf029: self._FZ29,
             0xf033: self._FZ33,
         }
@@ -123,6 +125,11 @@ class cpu(pyglet.window.Window):
     def _1ZZZ(self):
         log("Jumps to address NNN.")
         self.pc = self.opcode & 0x0fff
+
+    def _3ZZZ(self):
+        log("Skip next instruction if Vx = kk")
+        if self.gpio[self.vx] == (self.opcode & 0x00ff):
+            self.pc += 2
 
     def _4ZZZ(self):
         log("Skip next instruction if Vx doesn't equal NN")
@@ -211,6 +218,10 @@ class cpu(pyglet.window.Window):
             self.funcmap[extracted_op]()
         except:
             print("Unknown instruction: %X" % self.opcode)
+
+    def _FZ07(self):
+        log("Set Vx = delay timer value")
+        self.gpio[self.vx] = self.delay_timer
     
     def _FZ29(self):
         log("Set index to point to a character")

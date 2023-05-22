@@ -54,12 +54,17 @@ class cpu(pyglet.window.Window):
             0x00e0: self._0ZZ0,
             0x00ee: self._0ZZE,
             0x1000: self._1ZZZ,
+            0x2000: self._2ZZZ,
             0x3000: self._3ZZZ,
             0x4000: self._4ZZZ,
             0x5000: self._5ZZZ,
+            0x6000: self._6ZZZ,
+            0x7000: self._7ZZZ,
             0x8000: self._8ZZZ,
+            0x8002: self._8ZZ2,
             0x8004: self._8ZZ4,
             0x8005: self._8ZZ5,
+            0xa000: self._AZZZ,
             0xd000: self._DZZZ,
             0xe000: self._EZZZ,
             0xe09e: self._EZZE,
@@ -68,6 +73,7 @@ class cpu(pyglet.window.Window):
             0xf007: self._FZ07,
             0xf029: self._FZ29,
             0xf033: self._FZ33,
+            0xf065: self._FZ65,
         }
 
         i = 0
@@ -127,6 +133,12 @@ class cpu(pyglet.window.Window):
         log("Jumps to address NNN.")
         self.pc = self.opcode & 0x0fff
 
+    def _2ZZZ(self):
+        log("Call subroutine at NNN.")
+        self.stack.append(self.pc)
+        subroutine = self.opcode & 0x0fff
+        self.pc = subroutine
+
     def _3ZZZ(self):
         log("Skip next instruction if Vx = kk")
         if self.gpio[self.vx] == (self.opcode & 0x00ff):
@@ -141,6 +153,14 @@ class cpu(pyglet.window.Window):
         log("Skip next instruction if Vx = Vy")
         if(self.gpio[self.vx] == self.gpio[self.vy]):
             self.pc += 2
+
+    def _6ZZZ(self):
+        log("Set Vx = kk")
+        self.gpio[self.vx] = (self.opcode & 0x00ff)
+
+    def _7ZZZ(self):
+        log("Set Vx to be Vx + kk")
+        self.gpio[self.vx] = self.gpio[self.vx] + (self.opcode & 0x00ff)
     
     def _8ZZZ(self):
         extracted_op = self.opcode & 0xf00f
@@ -152,6 +172,10 @@ class cpu(pyglet.window.Window):
                 self.funcmap[extracted_op]()
             except:
                 print("Unknown instruction: %X" % self.opcode)
+
+    def _8ZZ2(self):
+        log("Set Vx = Vx and Vy")
+        self.gpio[self.vx]  = self.gpio[self.vx] & self.gpio[self.vy]
 
     def _8ZZ4(self):
         log("Adds Vy to Vx. Vf is set to 1 when there's a carry, and to 1 when there isn't")
@@ -168,6 +192,10 @@ class cpu(pyglet.window.Window):
         else:
             self.gpio[0xf] = 0
         self.gpio[self.vx] = (self.gpio[self.vx] - self.gpio[self.vy]) & 0xff
+
+    def _AZZZ(self):
+        log("Set I = nnn")
+        self.index = self.opcode & 0x0fff
 
     def _DZZZ(self):
         log("Draw a sprite")
@@ -235,6 +263,14 @@ class cpu(pyglet.window.Window):
         self.memory[self.index] = bcd // 100
         self.memory[self.index + 1] = (bcd // 10) % 10
         self.memory[self.index + 2] = bcd % 10
+
+    def _FZ65(self):
+        log("Read registers V0 through Vx in memory starting at location I")
+
+        register_counter  = 0
+        while register_counter <= self.vx:
+            self.gpio[register_counter] = self.memory[self.index + register_counter]
+            register_counter += 1
 
 
     def draw(self):

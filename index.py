@@ -2,6 +2,10 @@ import pyglet
 import sys
 
 class cpu(pyglet.window.Window):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pixel = pyglet.sprite.Sprite(pyglet.image.SolidColorImagePattern(color=(255, 255, 255, 255)).create_image(10, 10))
+
     def main(self):
         self.initialize()
         self.load_rom(sys.argv[1])
@@ -78,7 +82,7 @@ class cpu(pyglet.window.Window):
             i+=1
 
     def cycle(self):
-        self.opcode = self.memory[self.pc]
+        self.opcode = (self.memory[self.pc] << 8) | self.memory[self.pc + 1]  # Combine two bytes into a 16-bit opcode
 
         self.vx = (self.opcode & 0x0f00) >> 8
         self.vy = (self.opcode & 0x00f0) >> 4
@@ -229,7 +233,8 @@ class cpu(pyglet.window.Window):
             while i < 2048:
                 if self.display_buffer[i] == 1:
                     # draw a square pixel
-                    self.pixel.blit((i%64)*10, 310 - ((i/64)*10))
+                    self.pixel.update(x=(i % 64) * 10, y=310 - ((i // 64) * 10))
+                    self.pixel.draw()
                 i += 1
             self.flip()
             self.should_draw = False

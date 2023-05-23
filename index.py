@@ -174,7 +174,7 @@ class cpu(pyglet.window.Window):
 
     def _7ZZZ(self):
         log("Set Vx to be Vx + kk")
-        self.gpio[self.vx] = self.gpio[self.vx] + (self.opcode & 0x00ff)
+        self.gpio[self.vx] = (self.gpio[self.vx] + (self.opcode & 0x00ff)) & 0xff
     
     def _8ZZZ(self):
         extracted_op = self.opcode & 0xf00f
@@ -220,12 +220,12 @@ class cpu(pyglet.window.Window):
     def _8ZZ6(self):
         log("Set Vx = Vx SHR 1")
 
-        if self.gpio[self.vx] & 0x1 == 1:
+        if self.gpio[self.vx] & 0x01 == 1:
             self.gpio[0xf] = 1
         else:
             self.gpio[0xf] = 0
 
-        self.gpio[0xf] = self.gpio[0xf] << 1
+        self.gpio[self.vx] = (self.gpio[self.vx] >> 1)
     
     def _8ZZ7(self):
         log("Set Vx = Vy - Vx, set VF = NOT borrow")
@@ -236,16 +236,20 @@ class cpu(pyglet.window.Window):
             self.gpio[0xf] = 0
 
         self.gpio[self.vx] = self.gpio[self.vy] - self.gpio[self.vx]
+        if self.gpio[self.vx] < 0:
+            self.gpio[self.vx] += 256
+        
+        self.gpio &= 0xff
 
     def _8ZZE(self):
         log("Set Vx = Vx SHL 1")
 
-        if self.gpio[self.vx] >> 3 == 1:
+        if self.gpio[self.vx] & 0x80 == 0x80:
             self.gpio[0xf] = 1
         else:
             self.gpio[0xf] = 0
             
-        self.gpio[self.vx] = (self.gpio[self.vx] << 1) & 0xffff
+        self.gpio[self.vx] = (self.gpio[self.vx] << 1) & 0xff
 
     def _9ZZ0(self):
         log("Skip next instruction if Vx != Vy")

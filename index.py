@@ -62,10 +62,13 @@ class cpu(pyglet.window.Window):
             0x6000: self._6ZZZ,
             0x7000: self._7ZZZ,
             0x8000: self._8ZZZ,
+            0x8001: self._8ZZ1,
             0x8002: self._8ZZ2,
+            0x8003: self._8ZZ3,
             0x8004: self._8ZZ4,
             0x8005: self._8ZZ5,
             0x8006: self._8ZZ6,
+            0x8007: self._8ZZ7,
             0x800E: self._8ZZE,
             0x9000: self._9ZZ0,
             0xa000: self._AZZZ,
@@ -186,9 +189,17 @@ class cpu(pyglet.window.Window):
             except:
                 print("Unknown instruction: %X" % self.opcode)
 
+    def _8ZZ1(self):
+        log("Set Vx = Vx OR Vy")
+        self.gpio[self.vx] = self.gpio[self.vx] | self.gpio[self.vy]
+
     def _8ZZ2(self):
         log("Set Vx = Vx and Vy")
         self.gpio[self.vx]  = self.gpio[self.vx] & self.gpio[self.vy]
+
+    def _8ZZ3(self):
+        log("Set Vx = Vx XOR Vy")
+        self.gpio[self.vx] = self.gpio[self.vx] ^ self.gpio[self.vy]
 
     def _8ZZ4(self):
         log("Adds Vy to Vx. Vf is set to 1 when there's a carry, and to 0 when there isn't")
@@ -215,6 +226,16 @@ class cpu(pyglet.window.Window):
             self.gpio[0xf] = 0
 
         self.gpio[0xf] = self.gpio[0xf] << 1
+    
+    def _8ZZ7(self):
+        log("Set Vx = Vy - Vx, set VF = NOT borrow")
+
+        if(self.gpio[self.vy] > self.gpio[self.vx]):
+            self.gpio[0xf] = 1
+        else:
+            self.gpio[0xf] = 0
+
+        self.gpio[self.vx] = self.gpio[self.vy] - self.gpio[self.vx]
 
     def _8ZZE(self):
         log("Set Vx = Vx SHL 1")

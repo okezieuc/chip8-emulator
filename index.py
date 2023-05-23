@@ -75,6 +75,7 @@ class cpu(pyglet.window.Window):
             0xf007: self._FZ07,
             0xf015: self._FZ15,
             0xf018: self._FZ18,
+            0xf01e: self._FZ1E,
             0xf029: self._FZ29,
             0xf033: self._FZ33,
             0xf065: self._FZ65,
@@ -171,6 +172,8 @@ class cpu(pyglet.window.Window):
         extracted_op = self.opcode & 0xf00f
         if extracted_op == 0x8000:
             # run 8xy0 instruction
+            log("Set Vx = Vy")
+            self.gpio[self.vx] = self.gpio[self.vy]
             pass
         else:
             try:
@@ -183,7 +186,7 @@ class cpu(pyglet.window.Window):
         self.gpio[self.vx]  = self.gpio[self.vx] & self.gpio[self.vy]
 
     def _8ZZ4(self):
-        log("Adds Vy to Vx. Vf is set to 1 when there's a carry, and to 1 when there isn't")
+        log("Adds Vy to Vx. Vf is set to 1 when there's a carry, and to 0 when there isn't")
         if(self.gpio[self.vx] + self.gpio[self.vy] > 0xff):
             self.gpio[0xf] = 1
         else:
@@ -191,7 +194,7 @@ class cpu(pyglet.window.Window):
         self.gpio[self.vx] = (self.gpio[self.vx] + self.gpio[self.vy]) & 0xff
 
     def _8ZZ5(self):
-        log("Subtracts Vy from Vx. Vf is set to 0 when there's a borrow, and to 0 otherwise")
+        log("Subtracts Vy from Vx. Vf is set to 0 when there's a borrow, and to 1 otherwise")
         if(self.gpio[self.vx] > self.gpio[self.vy]):
             self.gpio[0xf] = 1
         else:
@@ -271,6 +274,10 @@ class cpu(pyglet.window.Window):
         log("Set sound timer = Vx")
         self.sound_timer = self.vx
     
+    def _FZ1E(self):
+        log("Set I = I + Vx")
+        self.index = self.index + self.gpio[self.vx]
+
     def _FZ29(self):
         log("Set index to point to a character")
         self.index = (5*(self.gpio[self.vx])) & 0xfff

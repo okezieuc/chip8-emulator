@@ -65,6 +65,9 @@ class cpu(pyglet.window.Window):
             0x8002: self._8ZZ2,
             0x8004: self._8ZZ4,
             0x8005: self._8ZZ5,
+            0x8006: self._8ZZ6,
+            0x800E: self._8ZZE,
+            0x9000: self._9ZZ0,
             0xa000: self._AZZZ,
             0xc000: self._CZZZ,
             0xd000: self._DZZZ,
@@ -73,11 +76,13 @@ class cpu(pyglet.window.Window):
             0xe0a1: self._EZZ1,
             0xf000: self._FZZZ,
             0xf007: self._FZ07,
+            0xf00a: self._FZ0A,
             0xf015: self._FZ15,
             0xf018: self._FZ18,
             0xf01e: self._FZ1E,
             0xf029: self._FZ29,
             0xf033: self._FZ33,
+            0xf055: self._FZ55,
             0xf065: self._FZ65,
         }
 
@@ -201,6 +206,32 @@ class cpu(pyglet.window.Window):
             self.gpio[0xf] = 0
         self.gpio[self.vx] = (self.gpio[self.vx] - self.gpio[self.vy]) & 0xff
 
+    def _8ZZ6(self):
+        log("Set Vx = Vx SHR 1")
+
+        if self.gpio[self.vx] & 0x1 == 1:
+            self.gpio[0xf] = 1
+        else:
+            self.gpio[0xf] = 0
+
+        self.gpio[0xf] = self.gpio[0xf] << 1
+
+    def _8ZZE(self):
+        log("Set Vx = Vx SHL 1")
+
+        if self.gpio[self.vx] >> 3 == 1:
+            self.gpio[0xf] = 1
+        else:
+            self.gpio[0xf] = 0
+            
+        self.gpio[self.vx] = (self.gpio[self.vx] << 1) & 0xffff
+
+    def _9ZZ0(self):
+        log("Skip next instruction if Vx != Vy")
+
+        if self.gpio[self.vx] != self.gpio[self.vy]:
+            self.pc += 2
+
     def _AZZZ(self):
         log("Set I = nnn")
         self.index = self.opcode & 0x0fff
@@ -209,7 +240,6 @@ class cpu(pyglet.window.Window):
         log("Set Vx = random byte AND kk")
         random_byte = random.randint(0, 0xff)
         self.gpio[self.vx] = random_byte & (self.opcode & 0x00ff)
-
 
     def _DZZZ(self):
         log("Draw a sprite")
@@ -266,6 +296,18 @@ class cpu(pyglet.window.Window):
         log("Set Vx = delay timer value")
         self.gpio[self.vx] = self.delay_timer
 
+    def _FZ0A(self):
+        log("Wait for a key press, store the value of the key in Vx")
+        if self.key_wait == False:
+            self.key_wait = True
+            
+        else:
+            self.key_wait = False
+            for key, val in self.key_inputs.items():
+                if val == 1:
+                    self.gpio[self.vx] = 1
+                    return
+
     def _FZ15(self):
         log("Set delay timer = Vx")
         self.delay_timer = self.vx
@@ -289,6 +331,14 @@ class cpu(pyglet.window.Window):
         self.memory[self.index] = bcd // 100
         self.memory[self.index + 1] = (bcd // 10) % 10
         self.memory[self.index + 2] = bcd % 10
+
+    def _FZ55(self):
+        log("Store registers V0 through Vx in memory starting at location I")
+        
+        register_counter = 0
+        while register_counter <= self.vx:
+            self.memory[self.index + register_counter] = self.gpio[register_counter]
+            register_counter += 1
 
     def _FZ65(self):
         log("Read registers V0 through Vx in memory starting at location I")
@@ -317,8 +367,6 @@ class cpu(pyglet.window.Window):
         log("Key pressed: %r" % symbol)
         if symbol in KEY_MAP.keys():
             self.key_inputs[KEY_MAP[symbol]] = 1
-            if self.key_wait:
-                self.key_wait = False
         else:
             super(cpu, self).on_key_press(symbol, modifiers)
 

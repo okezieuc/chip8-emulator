@@ -257,6 +257,11 @@ class cpu(pyglet.window.Window):
         log("Set I = nnn")
         self.index = self.opcode & 0x0fff
 
+    def _BZZZ(self):
+        log("Jump to location nnn + V0")
+        nnn = self.opcode & 0x0fff
+        self.pc = nnn + self.gpio[0x0]
+
     def _CZZZ(self):
         log("Set Vx = random byte AND kk")
         random_byte = random.randint(0, 0xff)
@@ -319,15 +324,7 @@ class cpu(pyglet.window.Window):
 
     def _FZ0A(self):
         log("Wait for a key press, store the value of the key in Vx")
-        if self.key_wait == False:
-            self.key_wait = True
-            
-        else:
-            self.key_wait = False
-            for key, val in self.key_inputs.items():
-                if val == 1:
-                    self.gpio[self.vx] = 1
-                    return
+        self.key_wait = True
 
     def _FZ15(self):
         log("Set delay timer = Vx")
@@ -388,6 +385,9 @@ class cpu(pyglet.window.Window):
         log("Key pressed: %r" % symbol)
         if symbol in KEY_MAP.keys():
             self.key_inputs[KEY_MAP[symbol]] = 1
+            if self.key_wait == True:
+                self.key_wait = False
+                self.gpio[self.vx] = symbol
         else:
             super(cpu, self).on_key_press(symbol, modifiers)
 

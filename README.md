@@ -14,11 +14,11 @@ To use this CHIP-8 emulator:
 
 3. Start the emulator with the following command.
 
-```bash
-python index.py <ROM_NAME>
-```
+    ```bash
+    python index.py <ROM_NAME>
+    ```
 
-Replace `ROM_NAME` with the name of the ROM file you wish to run.
+    Replace `ROM_NAME` with the name of the ROM file you wish to run.
 
 4. During runtime, the emulator window will display the CHIP-8 screen, and you can interact with the game using the following keyboard mappings:
 
@@ -39,9 +39,9 @@ To validate the implementation of CHIP-8 instructions in this emulator you can u
 
 3. Run the emulator with the following command:
 
-```bash
-python index.py test_opcode.ch8
-```
+    ```bash
+    python index.py test_opcode.ch8
+    ```
 
 ## Known Limitations
 - The implementation of the sound timer is incomplete.
